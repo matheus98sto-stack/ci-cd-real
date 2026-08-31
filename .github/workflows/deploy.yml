@@ -1,7 +1,7 @@
 name: Deploy AWS - api-piscina
 
 on:
-  push:
+  pull_requests:
     branches:
       - main
 
