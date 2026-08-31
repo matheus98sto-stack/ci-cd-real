@@ -1,38 +1,81 @@
-```markdown
-# API de Cálculo e Gestão de Tratamento de Piscinas
+<p align="center">
+  <img src="https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=1200&auto=format&fit=crop" alt="HydroCloud Banner" width="100%" style="border-radius: 10px;">
+</p>
 
-API desenvolvida em **FastAPI** para cálculo automatizado de produtos químicos para tratamento de piscinas, com persistência de dados em banco **PostgreSQL** hospedado na AWS. O projeto conta com automação completa de CI/CD via **GitHub Actions** para instâncias **AWS EC2** e **Amazon ECR**.
+<h1 align="center">🏊‍♂️ HydroCloud API</h1>
+<p align="center">
+  <em>Automação e Gestão Inteligente de Tratamento de Água em Nuvem</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-blue.svg?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi" alt="FastAPI">
+  <img src="https://img.shields.io/badge/AWS-EC2%20%7C%20RDS%20%7C%20ECR-FF9900?logo=amazonaws&logoColor=white" alt="AWS">
+  <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?logo=github-actions&logoColor=white" alt="GitHub Actions">
+</p>
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## ⚡ O Problema & A Solução
 
-* **Python & FastAPI**: Criação da API assíncrona e documentação interativa.
-* **SQLAlchemy & Pycopg2**: Mapeamento objeto-relacional (ORM) e conexão com banco de dados relacional.
-* **PostgreSQL (AWS RDS)**: Banco de dados em nuvem para armazenamento do histórico de tratamentos.
-* **Docker & Amazon ECR**: Empacotamento da aplicação em containers e armazenamento seguro de imagens.
-* **AWS EC2 & GitHub Actions**: Pipeline de integração e entrega contínua (CI/CD) automatizada.
+O controle manual de químicos em piscinas é propenso a erros de cálculo que desperdiçam insumos ou comprometem a qualidade da água. **HydroCloud** resolve isso oferecendo uma API de alta performance que calcula instantaneamente a proporção ideal de **Cloro, Barrilha (Soda Ash) e Floculante** com base no volume de água, registrando todo o histórico de auditoria em um banco relacional seguro.
+
+Mais do que apenas uma API, este projeto demonstra domínio completo de **DevOps, Nuvem e Engenharia de Software**, saindo do código local direto para produção automatizada na AWS.
 
 ---
 
-## 📂 Estrutura do Projeto
+## 🏗️ Arquitetura e Engenharia do Sistema
+
+O fluxo do sistema foi desenhado para garantir resiliência, segurança e **zero intervenção manual (Zero-Touch Deployment)**.
+
+```mermaid
+graph TD
+    %% Cores e Estilos
+    classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:black;
+    classDef github fill:#2088FF,stroke:#24292E,stroke-width:2px,color:white;
+    classDef docker fill:#2496ED,stroke:#0db7ed,stroke-width:2px,color:white;
+    
+    Dev([Desenvolvedor]) -->|1. Git Push| Repo(GitHub Repository)
+    
+    subgraph CI/CD Pipeline
+        Repo -->|2. Trigger| Actions[GitHub Actions]:::github
+        Actions -->|3. Build & Tag| Img{Docker Image}:::docker
+    end
+    
+    subgraph AWS Cloud
+        Img -->|4. Push| ECR[Amazon ECR]:::aws
+        Actions -->|5. SSH Command| EC2[Amazon EC2\nFastAPI]:::aws
+        EC2 -->|6. Pull Latest| ECR
+        EC2 <-->|7. Persistência na porta 5432| RDS[(Amazon RDS\nPostgreSQL)]:::aws
+    end
+```
+
+1. **Integração Contínua (CI):** O GitHub Actions valida o código e faz o build da imagem Docker.
+2. **Registro de Container:** A imagem é enviada de forma segura para o Amazon ECR.
+3. **Entrega Contínua (CD):** O pipeline acessa a instância EC2 via SSH, baixa a nova imagem, mata o container antigo e sobe a nova versão.
+4. **Segurança de Rede:** O AWS RDS (PostgreSQL) roda isolado, aceitando conexões *apenas* do IP privado da instância EC2 através de Security Groups.
+
+---
+
+## 📂 Estrutura do Repositório
 
 ```text
 api-piscina/
+├── .github/workflows/
+│   └── deploy.yml         # Pipeline CI/CD automatizado
 ├── src/
-│   ├── main.py            # Inicialização do FastAPI e rotas principais
-│   └── database.py        # Configuração de conexão com o banco de dados
-├── .github/
-│   └── workflows/
-│       └── deploy.yml     # Pipeline de CI/CD para deploy na AWS
-├── requirements.txt       # Dependências do projeto Python
-├── Dockerfile             # Configuração para containerização
+│   ├── database.py        # Conexão ORM (SQLAlchemy)
+│   └── main.py            # Rotas, regras de negócio e Schemas
+├── Dockerfile             # Setup do container da aplicação
+├── requirements.txt       # Dependências do projeto
 └── README.md
 ```
 
 ---
 
-## ⚙️ Como Executar o Projeto Localmente
+## ⚙️ Como Executar Localmente
 
 1. **Clone o repositório:**
    ```bash
@@ -43,10 +86,8 @@ api-piscina/
 2. **Crie e ative o ambiente virtual:**
    ```bash
    python -m venv venv
-   # No Windows:
-   venv\Scripts\activate
-   # No Mac/Linux:
-   source venv/bin/activate
+   source venv/bin/activate  # Mac/Linux
+   venv\Scripts\activate     # Windows
    ```
 
 3. **Instale as dependências:**
@@ -54,33 +95,44 @@ api-piscina/
    pip install -r requirements.txt
    ```
 
-4. **Configure a variável de ambiente do banco de dados (SQLite local para testes):**
+4. **Variável de Ambiente:**
+   Configure o banco local (SQLite para testes rápidos):
    ```bash
-   # No Windows (PowerShell):
-   $env:DATABASE_URL="sqlite:///./piscina.db"
+   export DATABASE_URL="sqlite:///./piscina.db"  # Mac/Linux
+   $env:DATABASE_URL="sqlite:///./piscina.db"    # Windows PowerShell
    ```
 
-5. **Inicie o servidor local:**
+5. **Inicie a API:**
    ```bash
    uvicorn src.main:app --reload
    ```
 
-6. **Acesse a documentação interativa:**
-   Abra no navegador: `http://127.0.0.1:8000/docs`
-
 ---
 
-## 🌐 Endpoints Principais
+## 🌐 API & Endpoints
 
-* `POST /api/piscina/calcular-e-salvar`: Recebe o volume de água em litros, calcula a quantidade exata de Cloro, Barrilha (Soda Ash) e Floculante necessários, e salva o registro no banco de dados.
+A documentação interativa (Swagger UI) pode ser acessada em `/docs`.
 
----
-
-## 🚀 Pipeline de CI/CD (GitHub Actions)
-
-O projeto possui automação configurada na pasta `.github/workflows/deploy.yml`. A cada `git push` realizado na branch `main`:
-1. O código é validado e empacotado em uma imagem **Docker**.
-2. A imagem é enviada para o **Amazon ECR**.
-3. O servidor **AWS EC2** via SSH atualiza a versão do container automaticamente, aplicando as novas alterações em tempo de execução com a base de dados integrada ao **AWS RDS**.
-
-```
+### Calcular e Salvar Tratamento
+- **Rota:** `POST /api/piscina/calcular-e-salvar`
+- **Descrição:** Calcula as quantidades químicas e salva o registro no PostgreSQL.
+- **Payload:**
+  ```json
+  {
+    "volume_litros": 20000
+  }
+  ```
+- **Resposta de Sucesso:**
+  ```json
+  {
+    "mensagem": "Salvo com sucesso!",
+    "dados": {
+      "id": 1,
+      "volume_litros": 20000,
+      "cloro_g": 80.0,
+      "floculante_ml": 120.0,
+      "soda_ash_g": 300.0,
+      "data": "2026-08-31T11:15:42"
+    }
+  }
+  ```
