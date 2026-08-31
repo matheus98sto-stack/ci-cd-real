@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=1200&auto=format&fit=crop" alt="HydroCloud Banner" width="100%" style="border-radius: 10px;">
-</p>
-
 <h1 align="center">🏊‍♂️ HydroCloud API</h1>
 <p align="center">
   <em>Automação e Gestão Inteligente de Tratamento de Água em Nuvem</em>
@@ -64,12 +60,19 @@ graph TD
 ```text
 api-piscina/
 ├── .github/workflows/
-│   └── deploy.yml         # Pipeline CI/CD automatizado
+│   └── deploy.yml                 # Pipeline CI/CD automatizado
 ├── src/
-│   ├── database.py        # Conexão ORM (SQLAlchemy)
-│   └── main.py            # Rotas, regras de negócio e Schemas
-├── Dockerfile             # Setup do container da aplicação
-├── requirements.txt       # Dependências do projeto
+│   ├── config/
+│   │   └── database.py            # Conexão e sessão do banco de dados (SQLAlchemy)
+│   ├── models/
+│   │   └── tratamento.py          # Modelos de dados e tabelas do banco
+│   ├── routes/
+│   │   └── tratamento_routes.py   # Controladores e mapeamento dos endpoints da API
+│   ├── services/
+│   │   └── calculadora.py         # Lógica de negócio e cálculos químicos
+│   └── main.py                    # Inicialização e configuração principal do FastAPI
+├── Dockerfile                     # Setup do container da aplicação
+├── requirements.txt               # Dependências do projeto
 └── README.md
 ```
 
