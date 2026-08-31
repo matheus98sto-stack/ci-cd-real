@@ -8,3 +8,5 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="API Tratamento de Piscina")
 
 app.include_router(tratamento_routes.router)
+
+print('sucesso')
