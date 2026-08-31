@@ -8,7 +8,7 @@ on:
 env:
   AWS_REGION: sa-east-1 
   ECR_REPOSITORY: projetos/app_docker
-  AWS_USERNAME: ec2-user
+
 jobs:
   build-and-deploy:
     name: Build e Deploy
@@ -48,10 +48,17 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ env.AWS_USERNAME }}
+          username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: ECR_REGISTRY, AWS_REGION, ECR_REPOSITORY, DATABASE_URL
           script: |
+            if ! command -v docker &> /dev/null; then
+              sudo yum update -y
+              sudo yum install -y docker
+              sudo systemctl start docker 
+              sudo systemctl enable docker 
+              sudo usermod -aG docker ec2-user
+            fi
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
             
